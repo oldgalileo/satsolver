@@ -33,7 +33,8 @@ int main() {
     };
     auto sat = NaiveSAT(7, clauses);
     auto result = sat.solve();
-    for(const auto b : result) {
+    if(result->empty()) { std::cout << "unsatisfiable\n"; return 1; }
+    for(const auto b : result.value()) {
         std::cout << b;
     }
     return 1;

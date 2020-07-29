@@ -14,7 +14,7 @@ protected:
     std::vector<std::vector<std::tuple<int, bool>>> clauses;
 
 public:
-    virtual std::vector<bool> solve() = 0;
+    virtual std::optional<std::vector<bool>> solve() = 0;
 };
 
 class NaiveSAT : SAT {
@@ -22,9 +22,9 @@ public:
     NaiveSAT(int numLiterals, std::vector<std::vector<std::tuple<int, bool>>> clauses)
             : SAT(numLiterals, std::move(clauses)) {};
 public:
-    std::vector<bool> solve() override;
+    std::optional<std::vector<bool>> solve() override;
 private:
-    std::vector<bool> solve(std::vector<std::vector<std::tuple<int,bool>>> clauses, std::vector<bool> literals);
+    std::optional<std::vector<bool>> solve(std::vector<std::vector<std::tuple<int,bool>>> clauses, std::vector<bool> literals);
     std::vector<std::vector<std::tuple<int, bool>>> simplify(std::vector<std::vector<std::tuple<int, bool>>> clauses, std::tuple<int, bool> literal);
 };
 

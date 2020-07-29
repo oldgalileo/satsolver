@@ -18,6 +18,7 @@ public:
 };
 
 class NaiveSAT : SAT {
+public:
     NaiveSAT(int numLiterals, std::vector<std::vector<std::tuple<int, bool>>> clauses)
             : SAT(numLiterals, std::move(clauses)) {};
 public:

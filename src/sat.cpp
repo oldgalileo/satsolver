@@ -10,15 +10,16 @@ std::optional<std::vector<bool>> NaiveSAT::solve() {
 /**
  * Tries to solve a CNF SAT-problem using the DPLL algorithm.
  *
+ * @see: https://en.wikipedia.org/wiki/DPLL_algorithm
  * @note: this implementation is not memory friendly :(
- * @return std::vector<bool> of size 'numLiterals + 1'
- *         with whether or not the problem is satisfiable (result[0])
- *         followed by the solution if so (result[1..numLiterals])
+ * @return std::nullopt if the problem is unsatisfiable or
+ *         option of std::vector<bool> with a satisfying
+ *         assignment for the literals.
  */
 std::optional<std::vector<bool>> NaiveSAT::solve(std::vector<std::vector<std::tuple<int, bool>>> clauses, std::vector<bool> literals) {
     // First, we find all the pure literals
     std::unordered_map<int, bool> pureLiterals{};
-    for(int i = 0; i < literals.size(); i++) pureLiterals[i] = false;
+    for(auto & clause : clauses) for(auto & tuple : clause) pureLiterals[std::get<0>(tuple)] = std::get<1>(tuple);
 
     // Create a map of literals to "is problem/not-pure literal"
     std::unordered_map<int, bool> visitedLiterals{};
@@ -89,9 +90,11 @@ std::optional<std::vector<bool>> NaiveSAT::solve(std::vector<std::vector<std::tu
         clauses = this->simplify(clauses, std::make_tuple(unit.first, unit.second));
     }
     for (auto & pureLiteral : pureLiterals) {
+        //TODO: Clean up some of the logic around the pure literals, make them less confusing
         literals[pureLiteral.first] = pureLiteral.second;
-        clauses = this->simplify(clauses, std::make_tuple(pureLiteral.first, pureLiteral.second));
+        clauses = this->simplify(clauses, std::make_tuple(pureLiteral.first, !pureLiteral.second));
     }
+
     if(clauses.empty()) {
         return std::make_optional(literals);
     }
@@ -100,12 +103,12 @@ std::optional<std::vector<bool>> NaiveSAT::solve(std::vector<std::vector<std::tu
     });
     // We grab the first literal from the shortest clause
     auto pick = clauses[0][0];
-    literals[std::get<0>(pick)] = std::get<1>(pick);
+    literals[std::get<0>(pick)] = !std::get<1>(pick);
     if(auto solution = this->solve(this->simplify(clauses, pick), literals); solution.has_value()) {
         return solution;
     } else {
         std::get<1>(pick) = !std::get<1>(pick);
-        literals[std::get<0>(pick)] = std::get<1>(pick);
+        literals[std::get<0>(pick)] = !std::get<1>(pick);
         return this->solve(this->simplify(clauses, pick), literals);
     }
 }
@@ -118,17 +121,17 @@ std::vector<std::vector<std::tuple<int, bool>>> NaiveSAT::simplify(std::vector<s
         while(tuple != clause->end()) {
             // Check if this iterated literal matches our target literal
             if(std::get<0>(literal) == std::get<0>(*tuple)) {
-                // Get rid of the loosely matching literal
-                tuple = clause->erase(tuple);
-
                 // This literal does match, now check if it's a strict match
-                // or just a loose match. If it's a strict match OR this was the last
-                // literal in the clause, we can simplify out the entire clause.
-                if(clause->empty() || std::get<1>(literal) == std::get<1>(*tuple)) {
+                // or just a loose match. If it's a strict match we can simplify
+                // out the whole clause.
+                if(std::get<1>(literal) == std::get<1>(*tuple)) {
                     clause = clauses.erase(clause);
                     simplified = true;
                     break;
                 }
+
+                // It's a loose match, so we only purge the inverse literal
+                tuple = clause->erase(tuple);
             } else {
                 tuple++;
             }

@@ -7,7 +7,7 @@ You no longer need to manually enter your SAT problem like a neanderthal! To tes
 
 Check [src/main.cpp](src/main.cpp) for all the usage details, and [src/sat.cpp](src/sat.cpp) for implementation details.
 
-## TODO:
+### TODO:
 - ~Add DIMACS parser~
 - Benchmark/improve DPLL performance
 - Implement [CDCL](https://en.wikipedia.org/wiki/Conflict-driven_clause_learning) solver

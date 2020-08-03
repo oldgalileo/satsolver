@@ -1,9 +1,60 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "sat.h"
 
+std::optional<std::vector<std::vector<std::tuple<int, bool>>>> parse(std::string path) {
+    std::ifstream in(path);
+    std::vector<std::vector<std::tuple<int,bool>>> pc;
+
+    std::string dimacsType;
+    int literals;
+    int clauses;
+    for(std::string line; std::getline(in, line);) {
+        if(line.empty() || line[0] == 'c') continue;
+        // TODO: Throw exception
+        if (line[0] != 'p') {
+            std::cout << "NOT PARAMS" << std::endl;
+            return std::nullopt;
+        }
+        else {
+            char pch;
+            std::stringstream ss(line);
+            ss >> pch >> dimacsType >> literals >> clauses;
+            if(!ss.eof()) {
+                // TODO: Throw exception
+                return std::nullopt;
+            }
+            break;
+        }
+    }
+    std::vector<std::tuple<int, bool>> clause;
+    for(std::string line; std::getline(in, line);) {
+        if(line.empty() || line[0] == 'c') continue;
+        if(line[0] == 'p') return std::nullopt;
+        int literal;
+        std::stringstream ss(line);
+        while(ss >> literal && literal != 0)
+            clause.emplace_back(std::make_tuple(std::abs(literal) - 1, literal < 0));
+        if(literal == 0) {
+            pc.push_back(std::move(clause));
+            clause = {};
+        }
+    }
+    return std::make_optional(pc);
+}
+
 int main() {
+    auto result = parse("/Users/galileo/CLionProjects/sat-solver/dimacs.txt");
+    if(result.has_value()) {
+        for (const auto& a : result.value()) {
+            for(const auto& b : a)
+                std::cout << "(" << std::get<0>(b) << "," << std::get<1>(b) << ") ";
+            std::cout << std::endl;
+        }
+    }
     {
         std::cout << "Problem 1: Answer is either 01 or 10\nResult: ";
         std::vector<std::tuple<int, bool>> p1{

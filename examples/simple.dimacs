@@ -1,0 +1,5 @@
+c This is a very simple SAT problem where the viable answer
+c is either (1:ON and 2:OFF) or (1:OFF and 2:ON)
+p cnf 2 2
+1 -2 0
+-1 2 0

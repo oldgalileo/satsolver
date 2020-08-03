@@ -1,0 +1,23 @@
+c The DIMACS format is pretty limited. You use `c` for comments,
+c then start describing the problem using `p`
+
+p cnf 2 2
+
+c Where the `p` signifies that this line is going to set up the
+c parameters. Then you specify what format the SAT problem will
+c be in (it should _always_ be CNF for this project). And finally,
+c you give it two numbers: the number of literals, and the number
+c of clauses. After that, each uncommented line should be:
+
+1 -2 0
+
+c The first two numbers are the literals. Negative literals are
+c negated. The 0 delineates that the line is over, meaning that
+c you could, for instance do something like:
+
+-1
+c Comment in the middle
+2
+0
+
+c This will be properly parsed and output 10 as a possible answer.

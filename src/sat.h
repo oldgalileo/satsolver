@@ -22,6 +22,7 @@ public:
     NaiveSAT(int numLiterals, std::vector<std::vector<std::tuple<int, bool>>> clauses)
             : SAT(numLiterals, std::move(clauses)) {};
 public:
+    static NaiveSAT parse(const std::string& path);
     std::optional<std::vector<bool>> solve() override;
 private:
     std::optional<std::vector<bool>> solve(std::vector<std::vector<std::tuple<int,bool>>> clauses, std::vector<bool> literals);

@@ -2,6 +2,8 @@
 #include <vector>
 #include <unordered_map>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 std::optional<std::vector<bool>> NaiveSAT::solve() {
     return(this->solve(this->clauses, this->literals));
@@ -140,5 +142,69 @@ std::vector<std::vector<std::tuple<int, bool>>> NaiveSAT::simplify(std::vector<s
         if(!simplified) clause++;
     }
     return clauses;
+}
+
+/**
+ * Parse file at path as a DIMACS-compliant file
+ *
+ * @param path to DIMACS file
+ * @return NaiveSAT represenatation of the problem
+ * @throws std::runtime_exception
+ */
+NaiveSAT NaiveSAT::parse(const std::string& path) {
+    std::ifstream in(path);
+    if(!in.is_open())
+        throw std::runtime_error("could not open file at " + path);
+    std::vector<std::vector<std::tuple<int,bool>>> pc;
+
+    std::string dimacsType;
+    int literals;
+    int clauses;
+    // First parse until we get to the parameters
+    for(std::string line; std::getline(in, line);) {
+        if(line.empty() || line[0] == 'c') continue;
+        if (line[0] != 'p') {
+            throw std::runtime_error("found problem contents when expecting parameters");
+        }
+        else {
+            // Throwaway char to read the 'p' into.
+            char pch;
+            std::stringstream ss(line);
+            // Read in the parameters
+            ss >> pch >> dimacsType >> literals >> clauses;
+            // Check that that is both the end of that line,
+            // and that this is a CNF DIMACS file.
+            if(!ss.eof() || dimacsType != "cnf") {
+                throw std::runtime_error("received unexpected parameters");
+            }
+            break;
+        }
+    }
+    // Now we read each of the clauses
+    std::vector<std::tuple<int, bool>> clause;
+    for(std::string line; std::getline(in, line);) {
+        if(line.empty() || line[0] == 'c') continue;
+        if(line[0] == 'p') throw std::runtime_error("found parameters when expecting problem contents");
+
+        int literal;
+        std::stringstream ss(line);
+        // Read into the the clause until we hit the end of the line or a 0
+        // Anything after the 0 is ignored and treated as a comment.
+        while(ss >> literal && literal != 0)
+            clause.emplace_back(std::make_tuple(std::abs(literal) - 1, literal < 0));
+        // If the above loop ended on the 'end of the line' case
+        // and not the 0 case, then we need to continue to add to
+        // the same clause until we hit the 0 case.
+
+        // Once we find the 0 delimiter, we move the clause to the end
+        // of the clauses container, and then reinitialize so it's empty.
+        if(literal == 0) {
+            pc.push_back(std::move(clause));
+            clause = {};
+        }
+    }
+    if(pc.size() != clauses)
+        throw std::runtime_error("invalid number of clauses");
+    return NaiveSAT(literals, pc);
 }
 

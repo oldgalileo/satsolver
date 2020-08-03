@@ -1,0 +1,12 @@
+c Problem taken from the DPLL Wikipedia page as mentioned
+c in the README. Mapping from alphabetical to numeric literals
+c was done in alphabetical order.
+p cnf 4 8
+-1 2 3 0
+1 3 4 0
+1 -3 4 0
+1 3 -4 0
+1 -3 -4 0
+-2 -3 4 0
+-1 2 -3 0
+-1 -2 3 0
